@@ -6,9 +6,9 @@ public class Player : MonoBehaviour
     private Animator anim;
 
     [SerializeField]
-    private float jumpForce;
-    [SerializeField]
     private float moveSpeed;
+    [SerializeField]
+    private float jumpForce;
 
     private float xInput;
     [SerializeField]
@@ -17,10 +17,28 @@ public class Player : MonoBehaviour
     private bool facingRight = true;
 
     [Header("Collision Info")]
-    
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
     private bool isGrounded;
+
+    [Header("Dash Info")]
+    [SerializeField] private float dashSpeed;
+    [SerializeField] private float dashDuration;
+    private float dashTime;
+    [SerializeField] private float dashCooldown;
+    private float dashCooldownTimer;
+
+
+    [Header("Attack Info")]
+    [SerializeField]private float comboTime = 0.3f;
+    private float comboTimeCounter;
+    private bool isAttacking;
+    private int comboCounter;
+
+
+    
+   
+
 
     void Start()
     {
@@ -37,11 +55,56 @@ public class Player : MonoBehaviour
         {
             Jump();
         }
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            DashAbility();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            StartAttackEvent();
+        }
     }
+
+    private void StartAttackEvent()
+    {
+        if (!isGrounded)
+            return;
+
+        if (comboTimeCounter < 0)
+            comboCounter = 0;
+
+        isAttacking = true;
+        comboTimeCounter = comboTime;
+    }
+
+    public void AttackOver()
+    {
+        isAttacking = false;
+        comboCounter++;
+
+        if (comboCounter > 2)
+            comboCounter = 0;
+    }
+
+
 
     private void Movement()
     {
-        rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocity.y);
+
+        if (isAttacking)
+        {
+            rb.linearVelocity = new Vector2(0, 0);
+        }
+        else if (dashTime > 0)
+        {
+            rb.linearVelocity = new Vector2(facingDir * dashSpeed, rb.linearVelocity.y);
+        }
+        else 
+        {
+            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocity.y);
+        }
+            
     }
 
     private void Jump()
@@ -56,8 +119,30 @@ public class Player : MonoBehaviour
     {
 
         isMoving = rb.linearVelocity.x != 0;
-        anim.SetBool("isMoving", isMoving);
 
+        anim.SetFloat("yVelocity", rb.linearVelocityY);
+
+        anim.SetBool("isMoving", isMoving);
+        anim.SetBool("isGrounded", isGrounded);
+        anim.SetBool("isDashing", dashTime > 0);
+        anim.SetBool("isAttacking", isAttacking);
+        anim.SetInteger("comboCounter", comboCounter);
+
+    }
+
+    private void CollisionChecks()
+    {
+        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
+        //Debug.Log(isGrounded);
+    }
+    private void DashAbility()
+    {
+
+        if (dashCooldownTimer < 0 && !isAttacking)
+        {
+            dashCooldownTimer = dashCooldown;
+            dashTime = dashDuration;
+        }
     }
 
     private void Flip()
@@ -85,6 +170,7 @@ public class Player : MonoBehaviour
         Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - groundCheckDistance));
     }
 
+
     void Update()
     {
         //if (Input.GetKeyDown(KeyCode.Space))
@@ -111,14 +197,17 @@ public class Player : MonoBehaviour
         //Ani.SetBool("IsMoving", isMoving);
         CheckInput();
         Movement();
-        CollisionCheck();
+        CollisionChecks();
+
+        dashTime -= Time.deltaTime;
+        dashCooldownTimer -= Time.deltaTime;
+        comboTimeCounter -= Time.deltaTime;
+
+
         FlipController();
         AnimatorControllers();
     }
 
-    private void CollisionCheck()
-    {
-        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
-        //Debug.Log(isGrounded);
-    }
+    
+
 }
