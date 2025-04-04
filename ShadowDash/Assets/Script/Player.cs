@@ -1,25 +1,13 @@
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Entity
 {
-    private Rigidbody2D rb;
-    private Animator anim;
 
-    [SerializeField]
-    private float moveSpeed;
-    [SerializeField]
-    private float jumpForce;
-
-    private float xInput;
-    [SerializeField]
-    private bool isMoving;
-    private int facingDir = 1;
-    private bool facingRight = true;
-
-    [Header("Collision Info")]
-    [SerializeField] private float groundCheckDistance;
-    [SerializeField] private LayerMask whatIsGround;
-    private bool isGrounded;
+    [Header("Move Info")]
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private bool isMoving;
+    
 
     [Header("Dash Info")]
     [SerializeField] private float dashSpeed;
@@ -35,16 +23,15 @@ public class Player : MonoBehaviour
     private bool isAttacking;
     private int comboCounter;
 
-
-    
-   
+    private float xInput;
 
 
-    void Start()
+    protected override void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        anim = GetComponentInChildren<Animator>(); //자식한테 있는 컴포넌트 가져올 때 사용
-        //rb.linearVelocity = new Vector2(5, rb.linearVelocity.y); //움직임을 표현, y값은 고정하고 x값만 움직임
+        base.Start();
+        //rb = GetComponent<Rigidbody2D>();
+        //anim = GetComponentInChildren<Animator>(); //자식한테 있는 컴포넌트 가져올 때 사용
+        ////rb.linearVelocity = new Vector2(5, rb.linearVelocity.y); //움직임을 표현, y값은 고정하고 x값만 움직임
     }
 
     private void CheckInput()
@@ -88,7 +75,6 @@ public class Player : MonoBehaviour
     }
 
 
-
     private void Movement()
     {
 
@@ -121,7 +107,6 @@ public class Player : MonoBehaviour
         isMoving = rb.linearVelocity.x != 0;
 
         anim.SetFloat("yVelocity", rb.linearVelocityY);
-
         anim.SetBool("isMoving", isMoving);
         anim.SetBool("isGrounded", isGrounded);
         anim.SetBool("isDashing", dashTime > 0);
@@ -130,11 +115,7 @@ public class Player : MonoBehaviour
 
     }
 
-    private void CollisionChecks()
-    {
-        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
-        //Debug.Log(isGrounded);
-    }
+    
     private void DashAbility()
     {
 
@@ -143,14 +124,6 @@ public class Player : MonoBehaviour
             dashCooldownTimer = dashCooldown;
             dashTime = dashDuration;
         }
-    }
-
-    private void Flip()
-    {
-        facingDir = facingDir * -1;
-        facingRight = !facingRight;
-
-        transform.Rotate(0, 180, 0); //보는 방향 뒤집기
     }
 
     private void FlipController()
@@ -165,14 +138,16 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    protected override void CollisionChecks()
     {
-        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - groundCheckDistance));
+        base.CollisionChecks();
     }
 
 
-    void Update()
+    protected override void Update()
     {
+        base.Update();
+
         //if (Input.GetKeyDown(KeyCode.Space))
         //    Debug.Log("Jump!!");
         //if (Input.GetKey(KeyCode.Alpha1))
@@ -197,7 +172,6 @@ public class Player : MonoBehaviour
         //Ani.SetBool("IsMoving", isMoving);
         CheckInput();
         Movement();
-        CollisionChecks();
 
         dashTime -= Time.deltaTime;
         dashCooldownTimer -= Time.deltaTime;
