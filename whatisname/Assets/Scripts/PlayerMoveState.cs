@@ -4,7 +4,7 @@ using UnityEngine;
 /// 플레이어의 이동 상태를 정의하는 클래스.
 /// PlayerState 클래스를 상속받아 이동 관련 동작을 구현할 수 있음.
 /// </summary>
-public class PlayerMoveState : PlayerState
+public class PlayerMoveState : PlayerGroudedState
 {
     /// <summary>
     /// 이동 상태의 생성자.
@@ -35,10 +35,11 @@ public class PlayerMoveState : PlayerState
     {
         // 부모 클래스의 Update() 메서드 호출
         base.Update();
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            player.stateMachine.ChangeState(player.idleState);
-        }
+
+        player.SetVelocity(xInput * player.moveSpeed, rb.linearVelocityY);
+
+        if (xInput == 0)
+            stateMachine.ChangeState(player.idleState);
     }
 
     /// <summary>

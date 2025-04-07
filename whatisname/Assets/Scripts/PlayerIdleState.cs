@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerIdleState : PlayerState
+public class PlayerIdleState : PlayerGroudedState
 {
     public PlayerIdleState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) 
         : base(_player, _stateMachine, _animBoolName)
@@ -16,10 +16,9 @@ public class PlayerIdleState : PlayerState
     public override void Update()
     {
         base.Update();
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            player.stateMachine.ChangeState(player.moveStatee);
-        }
+        if (xInput != 0)
+            stateMachine.ChangeState(player.moveStatee);
+
     }
 
     public override void Exit()
