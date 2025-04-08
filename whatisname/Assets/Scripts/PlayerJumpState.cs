@@ -26,7 +26,7 @@ public class PlayerJumpState : PlayerState
         if (Input.GetKeyDown(KeyCode.LeftControl) && player.IsWallDetected())
         {
             Debug.Log("Jump에서벽 잡기");
-            stateMachine.ChangeState(player.wallgripState);
+            //stateMachine.ChangeState(player.wallgripState);
         }
 
 

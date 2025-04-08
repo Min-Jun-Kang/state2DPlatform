@@ -1,13 +1,23 @@
+using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public bool isBusy { get; private set; }
     [Header("이동 정보")]
     public float moveSpeed = 12f;
     public float jumpForce;
+
+    [Header("공격 디테일")]
+    public Vector2[] attackMovement;
+
+    [Header("대시 정보")]
+    [SerializeField] private float dashCooldown;
+    private float dashUsageTimer;
     public float dashSpeed;
     public float dashDuration;
-    public float slideSpeed;
+    public float dashDir { get; private set; }
+
 
     [Header("플레이어 속도 정보")]
     public float VelocityX;
@@ -22,6 +32,7 @@ public class Player : MonoBehaviour
 
     public int facingDir { get; private set; } = 1; //기본 값도 설정 가능
     private bool facingRight = true;
+
 
     #region Component
     public Animator anim { get; private set; }
@@ -40,8 +51,10 @@ public class Player : MonoBehaviour
     public PlayerGroudedState groudedState { get; private set; }
     public PlayerDashState dashState { get; private set; }
     public PlayerWallGripState wallgripState { get; private set; }
-
     public PlayerWallSlideState wallslideState { get; private set; }
+    public PlayerWallJumpState walljumpState { get; private set; }
+
+    public PlayerPrimaryAttackState primaryaAttack { get; private set; }
     #endregion
 
     private void Awake()
@@ -57,6 +70,9 @@ public class Player : MonoBehaviour
         dashState = new PlayerDashState(this, stateMachine, "Dash");
         wallgripState = new PlayerWallGripState(this, stateMachine, "Grip");
         wallslideState = new PlayerWallSlideState(this, stateMachine, "Slide");
+        walljumpState = new PlayerWallJumpState(this, stateMachine, "Jump");
+
+        primaryaAttack = new PlayerPrimaryAttackState(this, stateMachine, "Attack");
 
     }
 
@@ -67,22 +83,60 @@ public class Player : MonoBehaviour
 
         // 게임 시작 시 초기 상태를 대기 상태(idleState)로 설정
         stateMachine.Initialize(idleState);
+
     }
 
     private void Update()
     {
         VelocityX = rb.linearVelocityX;
         VelocityY = rb.linearVelocityY;
+
         stateMachine.currentState.Update();
         FlipController();
+        CheckForDashInput();
 
     }
+
+    public IEnumerator BusyFor(float _seconds)
+    {
+        isBusy = true;
+
+        Debug.Log("바쁨");
+        yield return new WaitForSeconds(_seconds);
+        Debug.Log("안 바쁨");
+        isBusy = false;
+    }
+
+
+
+    public void AnimationTrigger() => stateMachine.currentState.AnimationFinishTrigger();
+
+    public void ZeroVelocity() => rb.linearVelocity = new Vector2(0, 0);
+
     public void SetVelocity(float _xVelocity, float _yVelocity)
     {
         rb.linearVelocity = new Vector2(_xVelocity, _yVelocity);
     }
 
+    private void CheckForDashInput()
+    {
+        dashUsageTimer -= Time.deltaTime;
 
+        if (Input.GetKeyDown(KeyCode.LeftShift) && dashUsageTimer<0)
+        {
+            dashUsageTimer = dashCooldown;
+
+            dashDir = Input.GetAxisRaw("Horizontal");
+
+            if (dashDir == 0)
+                dashDir = facingDir;
+
+            stateMachine.ChangeState(dashState);
+        }
+            
+    }
+
+    #region 충돌
     //땅체크
     public bool IsGroundDetected() => Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheckDistance, whatIsGround);
     public bool IsWallDetected() => Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, wallCheckDistance, whatIsGround); 
@@ -92,6 +146,7 @@ public class Player : MonoBehaviour
         Gizmos.DrawLine(groundCheck.position, new Vector3(groundCheck.position.x, groundCheck.position.y - groundCheckDistance));
         Gizmos.DrawLine(wallCheck.position, new Vector3(wallCheck.position.x + wallCheckDistance, wallCheck.position.y));
     }
+    #endregion
 
     public void Flip() //좌우 반전
     {

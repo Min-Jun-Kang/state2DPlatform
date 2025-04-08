@@ -19,7 +19,10 @@ public class PlayerDashState : PlayerState
 
         //Debug.Log("플레이어 대시 중");
 
-        player.SetVelocity(player.dashSpeed * player.facingDir, rb.linearVelocityY);
+        if (!player.IsGroundDetected() && player.IsWallDetected())
+            stateMachine.ChangeState(player.wallslideState);
+
+        player.SetVelocity(player.dashSpeed * player.dashDir, 0);
 
         if (stateTimer < 0)
         {

@@ -21,11 +21,16 @@ public class PlayerAirState : PlayerState
     {
         base.Update();
 
-        if (Input.GetKeyDown(KeyCode.LeftControl) && player.IsWallDetected())
+        if (player.IsWallDetected())
         {
-            Debug.Log("Fall에서 벽 잡기");
-            stateMachine.ChangeState(player.wallgripState);            
+            stateMachine.ChangeState(player.wallslideState);
+            return;
+            //Debug.Log("Fall에서 벽 잡기");
+            //stateMachine.ChangeState(player.wallgripState);            
         }
+
+        if (xInput != 0)
+            player.SetVelocity(player.moveSpeed * 0.8f * xInput, rb.linearVelocityY);
             
 
         if (player.IsGroundDetected())

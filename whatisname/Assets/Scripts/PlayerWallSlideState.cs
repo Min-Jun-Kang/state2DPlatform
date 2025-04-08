@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class PlayerWallSlideState : PlayerState
 {
-    public PlayerWallSlideState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
+    public PlayerWallSlideState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) 
+        : base(_player, _stateMachine, _animBoolName)
     {
     }
 
@@ -21,13 +22,25 @@ public class PlayerWallSlideState : PlayerState
     {
         base.Update();
 
-        player.SetVelocity(rb.linearVelocityX, -player.slideSpeed);
-        rb.gravityScale = 3.5f;
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            stateMachine.ChangeState(player.walljumpState);
+            return;
+        }
+        
+        if (xInput != 0 && player.facingDir != xInput)
+        {
+            stateMachine.ChangeState(player.idleState);
+        }
 
+        if (yInput < 0)
+            rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
+        else
+            rb.linearVelocity = new Vector2(0, rb.linearVelocityY * 0.7f);
 
         if (player.IsGroundDetected())
         {
-            Debug.Log("땅 밟기");
+            //Debug.Log("땅 밟기");
             stateMachine.ChangeState(player.idleState);
         }
     }

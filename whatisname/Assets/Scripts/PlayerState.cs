@@ -19,6 +19,7 @@ public class PlayerState
     protected float yInput;
 
     protected float stateTimer;
+    protected bool triggercCalled;
 
     // 애니메이션에서 사용할 상태 변수 이름 (애니메이션 트리거로 활용 가능)
     private string animBoolName;
@@ -47,6 +48,7 @@ public class PlayerState
         //Debug.Log("엔터 " + animBoolName);
         player.anim.SetBool(animBoolName, true);
         rb = player.rb;
+        triggercCalled = false;
     }
 
     /// <summary>
@@ -73,6 +75,11 @@ public class PlayerState
         // 상태 종료 시 수행할 동작을 여기에 구현 (예: 애니메이션 해제 등)
         //Debug.Log("엑시트 " + animBoolName);
         player.anim.SetBool(animBoolName, false);
+    }
+
+    public virtual void AnimationFinishTrigger()
+    {
+        triggercCalled = true;
     }
 }
 
